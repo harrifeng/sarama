@@ -39,8 +39,8 @@ func realMain() int {
 
 	http.HandleFunc("/", KafkaLogProducerWrapper(producer, HelloHandler))
 
-	log.Printf("[INFO] start server on :8080")
-	http.ListenAndServe(":8080", nil)
+	log.Printf("[INFO] start server on :8089")
+	http.ListenAndServe(":8089", nil)
 	return 0
 }
 
