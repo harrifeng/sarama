@@ -46,6 +46,7 @@ func realMain() int {
 
 func HelloHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
+	// time.Sleep(100 * time.Millisecond)
 	w.Write([]byte("Hello, world!\n"))
 }
 
