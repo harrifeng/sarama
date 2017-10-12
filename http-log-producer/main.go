@@ -17,7 +17,7 @@ func main() {
 
 func realMain() int {
 
-	brokers := []string{"localhost:9092"}
+	brokers := []string{"localhost:9093"}
 
 	config := sarama.NewConfig()
 	config.Producer.RequiredAcks = sarama.WaitForLocal
@@ -66,8 +66,8 @@ func KafkaLogProducerWrapper(producer sarama.AsyncProducer, fn http.HandlerFunc)
 		}
 
 		msg := &sarama.ProducerMessage{
-			Topic: "important",
-			Key:   sarama.StringEncoder("app_hello"),
+			Topic: "ktest",
+			// Key:   sarama.StringEncoder("app_hello"),
 			Value: logEncoder,
 		}
 
