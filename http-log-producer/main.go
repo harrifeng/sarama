@@ -38,12 +38,14 @@ func realMain() int {
 
 	}
 
-	// defer func() {
-	// 	if err := producer.Close(); err != nil {
-	// 		// Should not reach here
-	// 		panic(err)
-	// 	}
-	// }()
+	defer func() {
+		for _, producer := range producers {
+			if err := producer.Close(); err != nil {
+				// Should not reach here
+				panic(err)
+			}
+		}
+	}()
 
 	http.HandleFunc("/", KafkaLogProducerWrapper(producers, HelloHandler))
 
