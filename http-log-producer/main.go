@@ -26,23 +26,26 @@ func realMain() int {
 	config.Producer.Compression = sarama.CompressionSnappy
 	config.Producer.Flush.Frequency = 500 * time.Millisecond
 
-	producer, err := sarama.NewAsyncProducer(brokers, config)
-	producer1, err := sarama.NewAsyncProducer(brokers, config)
-	producer2, err := sarama.NewAsyncProducer(brokers, config)
-	producer3, err := sarama.NewAsyncProducer(brokers, config)
-	if err != nil {
-		// Should not reach here
-		panic(err)
-	}
+	producers := []sarama.AsyncProducer{}
+	for i := 0; i < 16; i++ {
+		producer, err := sarama.NewAsyncProducer(brokers, config)
 
-	defer func() {
-		if err := producer.Close(); err != nil {
+		if err != nil {
 			// Should not reach here
 			panic(err)
 		}
-	}()
+		producers = append(producers, producer)
 
-	http.HandleFunc("/", KafkaLogProducerWrapper([]sarama.AsyncProducer{producer, producer, producer}, HelloHandler))
+	}
+
+	// defer func() {
+	// 	if err := producer.Close(); err != nil {
+	// 		// Should not reach here
+	// 		panic(err)
+	// 	}
+	// }()
+
+	http.HandleFunc("/", KafkaLogProducerWrapper(producers, HelloHandler))
 
 	log.Printf("[INFO] start server on :8089")
 	http.ListenAndServe(":8089", nil)
@@ -79,7 +82,7 @@ func KafkaLogProducerWrapper(producer []sarama.AsyncProducer, fn http.HandlerFun
 
 		size := len(producer)
 		pos := rand.Int() % size
-		fmt.Println(pos)
+		fmt.Println("rand-->", pos)
 		producer[pos].Input() <- msg
 	}
 }
