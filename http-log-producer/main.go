@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
@@ -26,6 +27,9 @@ func realMain() int {
 	config.Producer.Flush.Frequency = 500 * time.Millisecond
 
 	producer, err := sarama.NewAsyncProducer(brokers, config)
+	producer1, err := sarama.NewAsyncProducer(brokers, config)
+	producer2, err := sarama.NewAsyncProducer(brokers, config)
+	producer3, err := sarama.NewAsyncProducer(brokers, config)
 	if err != nil {
 		// Should not reach here
 		panic(err)
@@ -38,7 +42,7 @@ func realMain() int {
 		}
 	}()
 
-	http.HandleFunc("/", KafkaLogProducerWrapper(producer, HelloHandler))
+	http.HandleFunc("/", KafkaLogProducerWrapper([]sarama.AsyncProducer{producer, producer, producer}, HelloHandler))
 
 	log.Printf("[INFO] start server on :8089")
 	http.ListenAndServe(":8089", nil)
@@ -52,7 +56,7 @@ func HelloHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // KafkaLogger is HandlerWrapper function to send log to Apache kafka
-func KafkaLogProducerWrapper(producer sarama.AsyncProducer, fn http.HandlerFunc) http.HandlerFunc {
+func KafkaLogProducerWrapper(producer []sarama.AsyncProducer, fn http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("[INFO] %s %s %s%s", r.UserAgent(), r.Method, r.URL.Host, r.URL.Path)
 
@@ -73,7 +77,10 @@ func KafkaLogProducerWrapper(producer sarama.AsyncProducer, fn http.HandlerFunc)
 			Value: logEncoder,
 		}
 
-		producer.Input() <- msg
+		size := len(producer)
+		pos := rand.Int() % size
+		fmt.Println(pos)
+		producer[pos].Input() <- msg
 	}
 }
 
